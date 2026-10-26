@@ -236,4 +236,7 @@ def test_cli_passes_a_valid_portfolio_into_the_run(tmp_path, monkeypatch):
     result = CliRunner().invoke(m.app, ["--portfolio", str(good)])
 
     assert result.exit_code == 0
-    assert ran[0]["portfolio"].position_in("AAPL").quantity == 120
+    # Positions resolve as --ticker does, so the book matches the analyzed instrument.
+    from cli.prompts import normalize_ticker_symbol
+
+    assert ran[0]["portfolio"].position_in(normalize_ticker_symbol("AAPL")).quantity == 120

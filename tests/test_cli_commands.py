@@ -41,13 +41,13 @@ def test_backtest_does_not_also_run_an_analysis(runner, monkeypatch, tmp_path):
     monkeypatch.setattr(m, "run_backtest", lambda *a, **kw: swept.append((a, kw)) or _Result(tmp_path))
     monkeypatch.setattr(m, "summarize", lambda log: _Summary())
 
-    result = runner.invoke(m.app, ["backtest", "NVDA,AAPL", "--start", "2026-06-01",
+    result = runner.invoke(m.app, ["backtest", "ENI,AAPL.US", "--start", "2026-06-01",
                                    "--end", "2026-06-15", "--every", "7"])
 
     assert result.exit_code == 0, result.output
     assert calls == []  # the interactive analysis must not run
     (tickers, dates, _config), kwargs = swept[0]
-    assert tickers == ["NVDA", "AAPL"]
+    assert tickers == ["ENI.MI", "AAPL"]  # resolved as --ticker is: Milan by default, .US for the US
     assert dates == ["2026-06-01", "2026-06-08", "2026-06-15"]
     assert "scored" in result.output
 
@@ -147,9 +147,9 @@ def test_backtest_shows_each_cell_and_how_to_continue(runner, monkeypatch, tmp_p
     monkeypatch.setattr(m, "run_backtest", sweep)
     monkeypatch.setattr(m, "summarize", lambda log: _Summary())
 
-    result = runner.invoke(m.app, ["backtest", "NVDA", "--start", "2026-06-01", "--end", "2026-06-08"])
+    result = runner.invoke(m.app, ["backtest", "ENI", "--start", "2026-06-01", "--end", "2026-06-08"])
 
-    assert "[1/2] NVDA 2026-06-01" in result.output and "[2/2] NVDA 2026-06-08" in result.output
+    assert "[1/2] ENI.MI 2026-06-01" in result.output and "[2/2] ENI.MI 2026-06-08" in result.output
     assert f"--run-id {_Result(tmp_path).run_id}" in result.output
 
 

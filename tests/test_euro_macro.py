@@ -263,6 +263,36 @@ class TestItalianTickers:
     def test_the_suffix_can_be_turned_off(self, suffix):
         assert apply_default_exchange("AAPL", suffix) == "AAPL"
 
+    def test_backtest_resolves_its_tickers_and_portfolio_like_an_analysis(self, tmp_path, monkeypatch):
+        import json
+
+        from typer.testing import CliRunner
+
+        import cli.main as m
+
+        book = tmp_path / "book.json"
+        book.write_text(json.dumps({"cash": 10000, "currency": "EUR", "positions": [
+            {"ticker": "ENI", "quantity": 100}, {"ticker": "AAPL.US", "quantity": 5}]}))
+        swept = []
+        monkeypatch.setattr(m, "run_backtest", lambda names, dates, config, **kw: swept.append((names, kw)))
+        monkeypatch.setattr(m, "summarize", lambda result: mock.Mock(render=lambda: ""))
+
+        CliRunner().invoke(m.app, ["backtest", "ENI,isp,AAPL.US", "--start", "2026-06-01",
+                                   "--end", "2026-06-01", "--portfolio", str(book)])
+
+        names, kwargs = swept[0]
+        assert names == ["ENI.MI", "ISP.MI", "AAPL"]
+        assert [p.ticker for p in kwargs["portfolio"].positions] == ["ENI.MI", "AAPL"]
+        assert kwargs["portfolio"].position_in("ENI.MI").quantity == 100
+
+    def test_backtest_refuses_a_malformed_ticker(self):
+        from typer.testing import CliRunner
+
+        import cli.main as m
+
+        result = CliRunner().invoke(m.app, ["backtest", "ENI,../x", "--start", "2026-06-01", "--end", "2026-06-01"])
+        assert result.exit_code == 1 and "not a ticker symbol" in result.output
+
     def test_milan_tickers_benchmark_against_the_ftse_mib(self):
         from tradingagents.default_config import DEFAULT_CONFIG
 

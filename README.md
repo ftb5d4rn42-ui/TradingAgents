@@ -35,7 +35,7 @@
 >
 > | Cosa | Come funziona |
 > |---|---|
-> | **Ticker italiani** | Nella CLI un ticker senza suffisso indica la quotazione di Milano: `ENI` → `ENI.MI`, `ISP` → `ISP.MI`, `FTSEMIB` → indice FTSE MIB. Per un titolo USA scrivi `AAPL.US`. Le altre borse si indicano con il loro suffisso (`SAP.DE`, `MC.PA`). Si disattiva con `TRADINGAGENTS_DEFAULT_EXCHANGE_SUFFIX=none`. |
+> | **Ticker italiani** | Nella CLI un ticker senza suffisso indica la quotazione di Milano: `ENI` → `ENI.MI`, `ISP` → `ISP.MI`, `FTSEMIB` → indice FTSE MIB. Per un titolo USA scrivi `AAPL.US`. Le altre borse si indicano con il loro suffisso (`SAP.DE`, `MC.PA`). Vale anche per `tradingagents backtest` e per i ticker del file `--portfolio`. Si disattiva con `TRADINGAGENTS_DEFAULT_EXCHANGE_SUFFIX=none`. |
 > | **Benchmark** | I titoli `.MI` sono confrontati con il FTSE MIB (`FTSEMIB.MI`) nel calcolo dell'alpha e nei backtest. |
 > | **Lingua** | Report e decisione finale in italiano per default (`TRADINGAGENTS_OUTPUT_LANGUAGE=English` per tornare all'inglese). Le righe lette dal programma (`**Rating**:`, `FINAL TRANSACTION PROPOSAL:`) restano in inglese. |
 > | **European Macro Analyst** | Un quinto analista legge i dati di BCE ed Eurostat: tassi BCE ed Euribor, inflazione HICP (area euro e Italia), rendimenti BTP e Bund e **spread BTP-Bund**, PIL, produzione industriale, disoccupazione e fiducia economica italiane, cambio EUR/USD. Spiega poi i canali con cui il quadro macro arriva al titolo (margine d'interesse e BTP in portafoglio per le banche, tassi di sconto per utility e infrastrutture, domanda per i ciclici, cambio per gli esportatori). Il suo report entra nel dibattito bull/bear e in quello sul rischio. Non si usa per le crypto. |

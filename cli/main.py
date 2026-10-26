@@ -7,7 +7,12 @@ from rich.markup import escape
 
 from cli.display import console
 from cli.models import AnalystType, AssetType
-from cli.prompts import filter_analysts_for_asset_type, parse_analysts
+from cli.prompts import (
+    filter_analysts_for_asset_type,
+    parse_analysts,
+    parse_ticker,
+    resolve_portfolio_tickers,
+)
 from cli.run import run_analysis
 from tradingagents.backtest import iter_grid, run_backtest, summarize
 from tradingagents.default_config import DEFAULT_CONFIG
@@ -83,7 +88,7 @@ def analyze(
     portfolio_context = None
     if portfolio:
         try:
-            portfolio_context = load_portfolio(portfolio)
+            portfolio_context = resolve_portfolio_tickers(load_portfolio(portfolio))
         except ValueError as exc:
             console.print(f"[red]{exc}[/red]")
             raise typer.Exit(code=1) from None
@@ -106,7 +111,7 @@ def analyze(
 
 @app.command()
 def backtest(
-    tickers: str = typer.Argument(..., help="Comma-separated tickers, e.g. NVDA,AAPL"),
+    tickers: str = typer.Argument(..., help="Comma-separated tickers, e.g. ENI,ISP (Milan) or AAPL.US"),
     start: str = typer.Option(..., "--start", help="First analysis date, YYYY-MM-DD"),
     end: str = typer.Option(..., "--end", help="Last analysis date, YYYY-MM-DD"),
     every: int = typer.Option(7, "--every", help="Days between analysis dates"),
@@ -125,7 +130,7 @@ def backtest(
 
     try:
         dates = iter_grid(start, end, every)
-        book = load_portfolio(portfolio) if portfolio else None
+        book = resolve_portfolio_tickers(load_portfolio(portfolio)) if portfolio else None
         kind = AssetType(asset_type.strip().lower())
         # The analysts are named and checked as for an analysis; without a
         # choice, every analyst the asset type allows runs.
@@ -135,7 +140,12 @@ def backtest(
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(code=1) from None
 
-    names = [t.strip() for t in tickers.split(",") if t.strip()]
+    # Resolved as --ticker is: ENI -> ENI.MI, AAPL.US -> AAPL.
+    try:
+        names = [parse_ticker(t) for t in tickers.split(",") if t.strip()]
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from None
     if not names:
         console.print("[red]No ticker to analyze; pass them comma-separated, e.g. NVDA,AAPL[/red]")
         raise typer.Exit(code=1)

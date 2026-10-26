@@ -130,6 +130,17 @@ def normalize_ticker_symbol(ticker: str) -> str:
         return ticker.strip().upper()
 
 
+def resolve_portfolio_tickers(book):
+    """The book with each position's ticker resolved as a typed ticker is.
+
+    A position is matched to the analyzed instrument by its ticker, so ``ENI`` in
+    the portfolio file must become ``ENI.MI`` exactly as ``--ticker ENI`` does,
+    or the agents would be told there is no position in the stock being analyzed.
+    """
+    positions = [p.model_copy(update={"ticker": normalize_ticker_symbol(p.ticker)}) for p in book.positions]
+    return book.model_copy(update={"positions": positions})
+
+
 def detect_asset_type(ticker: str) -> AssetType:
     """Classify on the canonical symbol so e.g. BTCUSD and BTC-USDT both read as
     crypto (#981/#982), matching what the data path will actually fetch."""
