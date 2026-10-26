@@ -29,6 +29,32 @@
 
 # TradingAgents: Multi-Agents LLM Financial Trading Framework
 
+> ## 🇮🇹 Versione per il mercato italiano ed europeo
+>
+> Questo fork adatta TradingAgents alle azioni di Borsa Italiana e al contesto macro dell'area euro.
+>
+> | Cosa | Come funziona |
+> |---|---|
+> | **Ticker italiani** | Nella CLI un ticker senza suffisso indica la quotazione di Milano: `ENI` → `ENI.MI`, `ISP` → `ISP.MI`, `FTSEMIB` → indice FTSE MIB. Per un titolo USA scrivi `AAPL.US`. Le altre borse si indicano con il loro suffisso (`SAP.DE`, `MC.PA`). Si disattiva con `TRADINGAGENTS_DEFAULT_EXCHANGE_SUFFIX=none`. |
+> | **Benchmark** | I titoli `.MI` sono confrontati con il FTSE MIB (`FTSEMIB.MI`) nel calcolo dell'alpha e nei backtest. |
+> | **Lingua** | Report e decisione finale in italiano per default (`TRADINGAGENTS_OUTPUT_LANGUAGE=English` per tornare all'inglese). Le righe lette dal programma (`**Rating**:`, `FINAL TRANSACTION PROPOSAL:`) restano in inglese. |
+> | **European Macro Analyst** | Un quinto analista legge i dati di BCE ed Eurostat: tassi BCE ed Euribor, inflazione HICP (area euro e Italia), rendimenti BTP e Bund e **spread BTP-Bund**, PIL, produzione industriale, disoccupazione e fiducia economica italiane, cambio EUR/USD. Spiega poi i canali con cui il quadro macro arriva al titolo (margine d'interesse e BTP in portafoglio per le banche, tassi di sconto per utility e infrastrutture, domanda per i ciclici, cambio per gli esportatori). Il suo report entra nel dibattito bull/bear e in quello sul rischio. Non si usa per le crypto. |
+> | **Nuove fonti dati** | `get_euro_macro_indicators`: ECB Data Portal ed Eurostat, gratuiti e **senza chiave API**. Le notizie macro globali partono da BCE, conti pubblici italiani, FTSE MIB ed economia dell'eurozona. |
+>
+> **Attenzione ai backtest.** BCE ed Eurostat non conservano le versioni storiche dei dati (a differenza di FRED/ALFRED). Per non usare un dato prima della sua pubblicazione, ogni osservazione compare solo dopo la fine del periodo e il ritardo di pubblicazione tipico della serie (es. 20 giorni per l'HICP, 60 per il PIL). Il valore mostrato è però l'ultima revisione: per PIL, disoccupazione e produzione industriale può differire dal primo dato pubblicato, e il report lo segnala.
+>
+> **Avvio rapido**
+> ```bash
+> pip install .
+> export OPENAI_API_KEY=...        # o un altro provider, vedi sotto
+> tradingagents --ticker ENI --date 2026-10-23 --analysts market,news,fundamentals,euro_macro
+> ```
+> Oppure da Python: `TradingAgentsGraph().propagate("ENI.MI", "2026-10-23")`.
+>
+> I test delle fonti dati reali si lanciano con `pytest -m integration tests/test_euro_macro.py`.
+>
+> Come il progetto originale, è uno strumento di ricerca e **non costituisce consulenza finanziaria**.
+
 ## News
 
 <!-- news:start -->

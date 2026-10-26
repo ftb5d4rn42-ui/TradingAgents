@@ -59,8 +59,10 @@ def test_detect_asset_type(raw, expected):
 
 def test_cli_normalize_delegates_to_data_layer():
     # CLI must produce the same canonical symbol the data path will price.
-    for raw in ("XAUUSD", "BTCUSD", "btc-usdt", "AAPL"):
-        assert normalize_ticker_symbol(raw) == normalize_symbol(raw)
+    for raw in ("XAUUSD", "BTCUSD", "btc-usdt", "AAPL.US", "ENI.MI"):
+        assert normalize_ticker_symbol(raw) == normalize_symbol(raw.removesuffix(".US"))
+    # A bare ticker takes the fork's default exchange (Borsa Italiana).
+    assert normalize_ticker_symbol("ENI") == "ENI.MI"
 
 
 @pytest.mark.unit

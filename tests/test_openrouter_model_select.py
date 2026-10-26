@@ -111,12 +111,13 @@ class TestCancelExitsCleanly:
 
 
 @pytest.mark.unit
-class TestLanguageDefaultsToEnglish:
-    def test_select_cancel_defaults_english(self):
+class TestLanguageDefaultsToConfigured:
+    # This fork's configured default is Italian; a cancel falls back to it.
+    def test_select_cancel_defaults_to_configured(self):
         with mock.patch.object(prompts.questionary, "select", return_value=_asks(None)):
-            assert prompts.ask_output_language() == "English"
+            assert prompts.ask_output_language() == prompts.DEFAULT_CONFIG["output_language"]
 
-    def test_custom_language_cancel_defaults_english(self):
+    def test_custom_language_cancel_defaults_to_configured(self):
         with mock.patch.object(prompts.questionary, "select", return_value=_asks("custom")), \
              mock.patch.object(prompts.questionary, "text", return_value=_asks(None)):
-            assert prompts.ask_output_language() == "English"
+            assert prompts.ask_output_language() == prompts.DEFAULT_CONFIG["output_language"]

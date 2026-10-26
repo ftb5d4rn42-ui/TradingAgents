@@ -201,6 +201,19 @@ def report_or_absent(text: str, source: str) -> str:
     return f"(No {source} report in this run: it is not available, not an empty finding.)"
 
 
+def euro_macro_line(state: Mapping[str, Any]) -> str:
+    """The European Macro Analyst's report as a labelled prompt line, or nothing.
+
+    The line is left out entirely, rather than shown with an absence marker,
+    when the run has no such report: the analyst is optional, and a label with
+    nothing under it is what invites a reader to fill the gap in (#1176).
+    """
+    text = (state.get("euro_macro_report") or "").strip()
+    if not text:
+        return ""
+    return f"European macro report (euro area and Italy: ECB, inflation, BTP-Bund spread): {text}\n"
+
+
 def get_portfolio_context_from_state(state: Mapping[str, Any]) -> str:
     """Return the caller's portfolio block, or a notice that none was given.
 

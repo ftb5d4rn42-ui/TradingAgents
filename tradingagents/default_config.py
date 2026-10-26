@@ -17,6 +17,7 @@ _ENV_OVERRIDES = {
     "TRADINGAGENTS_QUICK_THINK_BACKEND_URL":   "quick_think_backend_url",
     "TRADINGAGENTS_LLM_BACKEND_URL":      "backend_url",
     "TRADINGAGENTS_OUTPUT_LANGUAGE":      "output_language",
+    "TRADINGAGENTS_DEFAULT_EXCHANGE_SUFFIX": "default_exchange_suffix",
     "TRADINGAGENTS_MAX_DEBATE_ROUNDS":    "max_debate_rounds",
     "TRADINGAGENTS_MAX_RISK_ROUNDS":      "max_risk_discuss_rounds",
     "TRADINGAGENTS_MAX_TOOL_ROUNDS":      "max_tool_rounds",
@@ -126,9 +127,16 @@ def build_default_config() -> dict:
         # Checkpoint/resume: when True, LangGraph saves state after each node
         # so a crashed run can resume from the last successful step.
         "checkpoint_enabled": False,
-        # Output language for analyst reports and final decision
-        # Internal agent debate stays in English for reasoning quality
-        "output_language": "English",
+        # Output language for analyst reports and final decision. This fork
+        # writes in Italian by default; set TRADINGAGENTS_OUTPUT_LANGUAGE=English
+        # (or any other language) to change it.
+        "output_language": "Italian",
+        # Exchange suffix the CLI adds to a bare ticker the user types, so "ENI"
+        # means Eni on Borsa Italiana (ENI.MI) and is benchmarked against the FTSE
+        # MIB. A ticker that already names its listing (ENI.MI, SAP.DE, 0700.HK),
+        # an index, future, forex or crypto symbol is left alone. Type ".US" for a
+        # US listing (AAPL.US -> AAPL), or set it to "none" to turn this off.
+        "default_exchange_suffix": ".MI",
         # Debate and discussion settings
         "max_debate_rounds": 1,
         "max_risk_discuss_rounds": 1,
@@ -143,12 +151,15 @@ def build_default_config() -> dict:
         "global_news_lookback_days": 7,       # macro news lookback window
         # Search queries used by get_global_news for macro headlines. Extend or
         # replace to broaden geographic / sector coverage.
+        # This fork leads with euro-area and Italian coverage.
         "global_news_queries": [
+            "ECB Lagarde interest rates euro area inflation",
+            "Italy economy government budget BTP spread",
+            "FTSE MIB Borsa Italiana Milan stocks",
+            "eurozone economy PMI growth outlook",
             "Federal Reserve interest rates inflation",
-            "S&P 500 earnings GDP economic outlook",
             "geopolitical risk trade war sanctions",
-            "ECB Bank of England BOJ central bank policy",
-            "oil commodities supply chain energy",
+            "oil gas energy prices Europe",
         ],
         # Data vendor configuration
         # Category-level configuration (default for all tools in category).
@@ -163,6 +174,7 @@ def build_default_config() -> dict:
         "fundamental_data": "sec_edgar,yfinance",  # Options: sec_edgar, alpha_vantage, yfinance
             "news_data": "yfinance",             # Options: alpha_vantage, yfinance
             "macro_data": "fred",                # Options: fred (needs FRED_API_KEY)
+            "euro_macro_data": "ecb_eurostat",   # Options: ecb_eurostat (keyless)
             "prediction_markets": "polymarket",  # Options: polymarket (keyless)
         },
         # Tool-level configuration (takes precedence over category-level)

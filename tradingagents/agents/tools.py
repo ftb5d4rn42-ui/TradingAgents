@@ -265,6 +265,43 @@ def get_macro_indicators(
 
 
 @tool
+def get_euro_macro_indicators(
+    indicator: Annotated[
+        str,
+        "European macro series: 'ecb_deposit_rate', 'ecb_main_refi_rate', 'euribor_3m', "
+        "'eur_usd', 'euro_hicp', 'euro_core_hicp', 'italy_hicp', 'italy_core_hicp', "
+        "'italy_10y', 'germany_10y', 'btp_bund_spread', 'italy_gdp_growth', "
+        "'italy_unemployment', 'italy_industrial_production', 'italy_economic_sentiment'.",
+    ],
+    curr_date: Annotated[str, "Current date in yyyy-mm-dd format; the end of the window"],
+    look_back_days: Annotated[
+        int | None, "Trailing window length in days; omit for a 1-year window"
+    ] = None,
+    trade_date: Annotated[str, InjectedState("trade_date")] = "",
+) -> str:
+    """
+    Retrieve a euro-area or Italian macroeconomic series from the ECB Data Portal
+    or Eurostat (free, no API key): ECB policy rates, Euribor, EUR/USD, HICP
+    inflation, Italian and German 10-year yields and the BTP-Bund spread, and
+    Italian GDP growth, unemployment, industrial production and economic
+    sentiment. Returns the series title, units, the latest value, the change over
+    the window and a recent observation table, showing only figures already
+    published on the analysis date. Uses the configured euro_macro_data vendor.
+
+    Args:
+        indicator (str): Series alias from the list above
+        curr_date (str): Current date in yyyy-mm-dd format
+        look_back_days (int): Trailing window length; omit for a 1-year window
+
+    Returns:
+        str: A formatted markdown report of the series
+    """
+    return route_to_vendor(
+        "get_euro_macro_indicators", indicator, as_of(curr_date, trade_date), look_back_days
+    )
+
+
+@tool
 def get_prediction_markets(
     topic: Annotated[
         str,

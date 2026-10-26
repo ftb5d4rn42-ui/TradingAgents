@@ -12,5 +12,6 @@ config = DEFAULT_CONFIG.copy()
 ta = TradingAgentsGraph(debug=True, config=config)
 
 # forward propagate
-_, decision = ta.propagate("NVDA", "2026-09-01")
+# Eni on Borsa Italiana; benchmarked against the FTSE MIB.
+_, decision = ta.propagate("ENI.MI", "2026-09-01")
 print(decision)

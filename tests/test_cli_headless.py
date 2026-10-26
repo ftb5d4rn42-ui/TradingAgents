@@ -16,7 +16,7 @@ UNATTENDED_ENV = {
     "TRADINGAGENTS_LLM_PROVIDER": "openai",
     "TRADINGAGENTS_QUICK_THINK_LLM": "gpt-6-luna",
 }
-FLAGS = {"ticker": "NVDA", "date": "2026-09-23", "analysts": "market,news", "save": True, "show": False}
+FLAGS = {"ticker": "ENI", "date": "2026-09-23", "analysts": "market,news", "save": True, "show": False}
 
 
 @pytest.mark.unit
@@ -60,7 +60,8 @@ def test_flags_skip_exactly_their_own_steps(monkeypatch):
 
     chosen = selections._prompt_selections({}, FLAGS)
 
-    assert chosen["ticker"] == "NVDA" and chosen["analysis_date"] == "2026-09-23"
+    # A bare ticker takes the fork's default exchange: ENI -> ENI.MI (Borsa Italiana).
+    assert chosen["ticker"] == "ENI.MI" and chosen["analysis_date"] == "2026-09-23"
     assert chosen["analysts"] == [AnalystType.MARKET, AnalystType.NEWS]
 
 
@@ -137,7 +138,7 @@ def test_the_command_passes_its_flags_to_the_run(monkeypatch):
     seen = {}
     monkeypatch.setattr(cli_main, "run_analysis", lambda **kw: seen.update(kw))
 
-    result = CliRunner().invoke(cli_main.app, ["--ticker", "NVDA", "--date", "2026-09-23",
+    result = CliRunner().invoke(cli_main.app, ["--ticker", "ENI", "--date", "2026-09-23",
                                                "--analysts", "market,news", "--save", "--no-show"])
 
     assert result.exit_code == 0, result.output

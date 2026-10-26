@@ -88,7 +88,7 @@ def _build_run_config(selections: dict, checkpoint: bool | None) -> dict:
     for key in ("google_thinking_level", "openai_reasoning_effort", "anthropic_effort"):
         if selections.get(key) is not None:
             config[key] = selections[key]
-    config["output_language"] = selections.get("output_language", "English")
+    config["output_language"] = selections.get("output_language", DEFAULT_CONFIG["output_language"])
     # --checkpoint/--no-checkpoint overrides only when explicitly given; omitting
     # the flag preserves TRADINGAGENTS_CHECKPOINT_ENABLED / the default (#976).
     if checkpoint is not None:

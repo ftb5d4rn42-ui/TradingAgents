@@ -17,6 +17,7 @@ from tradingagents.dataflows.vendors.alpha_vantage import (
     get_news as get_alpha_vantage_news,
     get_stock as get_alpha_vantage_stock,
 )
+from tradingagents.dataflows.vendors.euro_macro import get_euro_macro_data
 from tradingagents.dataflows.vendors.fred import get_macro_data as get_fred_macro_data
 from tradingagents.dataflows.vendors.polymarket import (
     get_prediction_markets as get_polymarket_prediction_markets,
@@ -78,6 +79,12 @@ TOOLS_CATEGORIES = {
             "get_macro_indicators",
         ]
     },
+    "euro_macro_data": {
+        "description": "Euro-area and Italian macro indicators (ECB, Eurostat; keyless)",
+        "tools": [
+            "get_euro_macro_indicators",
+        ]
+    },
     "prediction_markets": {
         "description": "Market-implied probabilities for forward-looking events",
         "tools": [
@@ -91,7 +98,7 @@ TOOLS_CATEGORIES = {
 # sentinel instead of aborting the run (a bad LLM-supplied indicator, a missing
 # key, or a network blip should not crash an analysis over flavour data). Core
 # categories (prices, fundamentals, news) still raise so a broken primary is loud.
-OPTIONAL_CATEGORIES = {"macro_data", "prediction_markets"}
+OPTIONAL_CATEGORIES = {"macro_data", "euro_macro_data", "prediction_markets"}
 
 # Mapping of methods to their vendor-specific implementations
 VENDOR_METHODS = {
@@ -141,6 +148,10 @@ VENDOR_METHODS = {
     # macro_data
     "get_macro_indicators": {
         "fred": get_fred_macro_data,
+    },
+    # euro_macro_data
+    "get_euro_macro_indicators": {
+        "ecb_eurostat": get_euro_macro_data,
     },
     # prediction_markets
     "get_prediction_markets": {

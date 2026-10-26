@@ -11,17 +11,19 @@ from rich.markup import escape
 
 from cli.display import console
 from cli.models import AnalystType, AssetType
+from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.llm_clients.api_key_env import get_api_key_env
 from tradingagents.llm_clients.model_catalog import get_model_options
 from tradingagents.llm_clients.openai_client import OPENAI_COMPATIBLE_PROVIDERS, SIGNED_IN_PROVIDERS
 
-TICKER_INPUT_EXAMPLES = "SPY, 0700.HK, BTC-USD"
+TICKER_INPUT_EXAMPLES = "ENI, ISP, UCG.MI, AAPL.US, BTC-USD"
 
 ANALYST_CHOICES = [
     ("Market Analyst", AnalystType.MARKET),
     ("Sentiment Analyst", AnalystType.SOCIAL),
     ("News Analyst", AnalystType.NEWS),
     ("Fundamentals Analyst", AnalystType.FUNDAMENTALS),
+    ("European Macro Analyst (ECB, Eurostat, Italy)", AnalystType.EURO_MACRO),
 ]
 
 CRYPTO_SUFFIXES = ("-USD", "-USDT", "-USDC", "-BTC", "-ETH")
@@ -57,7 +59,7 @@ def get_ticker() -> str:
         f"Enter ticker symbol (e.g. {TICKER_INPUT_EXAMPLES}):",
         validate=lambda x: (
             is_valid_ticker_input(x)
-            or "Please enter a valid ticker symbol, e.g. AAPL, 000404.SZ, 0700.HK, GC=F."
+            or "Please enter a valid ticker symbol, e.g. ENI, ISP.MI, AAPL.US, 0700.HK, GC=F."
         ),
         style=questionary.Style(
             [
@@ -71,7 +73,7 @@ def get_ticker() -> str:
         console.print("\n[red]No ticker symbol provided. Exiting...[/red]")
         exit(1)
 
-    return normalize_ticker_symbol(ticker) if ticker.strip() else "SPY"
+    return normalize_ticker_symbol(ticker) if ticker.strip() else "FTSEMIB.MI"
 
 
 def parse_ticker(value: str) -> str:
@@ -115,13 +117,15 @@ def normalize_ticker_symbol(ticker: str) -> str:
 
     Delegates to the data layer's ``normalize_symbol`` so the symbol the CLI
     passes through the pipeline is exactly the one the data path will price
-    (e.g. ``BTCUSD`` -> ``BTC-USD``, ``XAUUSD`` -> ``GC=F``). Falls back to the
-    plain upper-case if the data layer is unavailable.
+    (e.g. ``BTCUSD`` -> ``BTC-USD``, ``XAUUSD`` -> ``GC=F``). A bare ticker gets
+    the configured ``default_exchange_suffix`` (``ENI`` -> ``ENI.MI``). Falls
+    back to the plain upper-case if the data layer is unavailable.
     """
     try:
-        from tradingagents.dataflows.symbols import normalize_symbol
+        from tradingagents.dataflows.config import get_config
+        from tradingagents.dataflows.symbols import apply_default_exchange
 
-        return normalize_symbol(ticker)
+        return apply_default_exchange(ticker, get_config().get("default_exchange_suffix"))
     except Exception:
         return ticker.strip().upper()
 
@@ -140,10 +144,12 @@ def filter_analysts_for_asset_type(
 ) -> list[AnalystType]:
     if asset_type != AssetType.CRYPTO:
         return analysts
+    # Company fundamentals and the Italian/euro-area macro read do not apply to
+    # a crypto asset.
     return [
         analyst
         for analyst in analysts
-        if analyst != AnalystType.FUNDAMENTALS
+        if analyst not in (AnalystType.FUNDAMENTALS, AnalystType.EURO_MACRO)
     ]
 
 
@@ -747,7 +753,8 @@ def ask_output_language(default=None) -> str:
     one entered last time is free text, which the menu cannot preselect.
     """
     choices = [
-        questionary.Choice("English (default)", "English"),
+        questionary.Choice("Italian (Italiano)", "Italian"),
+        questionary.Choice("English", "English"),
         questionary.Choice("Chinese (中文)", "Chinese"),
         questionary.Choice("Japanese (日本語)", "Japanese"),
         questionary.Choice("Korean (한국어)", "Korean"),
@@ -771,14 +778,14 @@ def ask_output_language(default=None) -> str:
         ]),
     ).ask()
 
-    # Output language has a sensible default, so a cancel falls back to English
-    # rather than exiting the run (unlike the required model/provider prompts).
+    # Output language has a sensible default, so a cancel falls back to the
+    # configured one rather than exiting the run (unlike the required prompts).
     if choice is None:
-        return "English"
+        return DEFAULT_CONFIG["output_language"]
     if choice == "custom":
         return (questionary.text(
             "Enter language name (e.g. Turkish, Vietnamese, Thai, Indonesian):",
             validate=lambda x: len(x.strip()) > 0 or "Please enter a language name.",
-        ).ask() or "").strip() or "English"
+        ).ask() or "").strip() or DEFAULT_CONFIG["output_language"]
 
     return choice

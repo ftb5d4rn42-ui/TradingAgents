@@ -65,6 +65,9 @@ _ALIASES = {
     "GER40": "^GDAXI", "GER30": "^GDAXI", "DE40": "^GDAXI",
     "UK100": "^FTSE", "JP225": "^N225", "JPN225": "^N225",
     "FRA40": "^FCHI", "EU50": "^STOXX50E", "HK50": "^HSI",
+    # Borsa Italiana: the FTSE MIB as brokers and data sites spell it
+    "FTSEMIB": "FTSEMIB.MI", "FTSE_MIB": "FTSEMIB.MI", "IT40": "FTSEMIB.MI",
+    "ITA40": "FTSEMIB.MI", "FTMIB": "FTSEMIB.MI",
 }
 
 # HKEX codes as Yahoo spells them: the number zero-padded to 4 digits (#957).
@@ -142,6 +145,42 @@ def normalize_symbol(raw: str) -> str:
     if canonical != raw.strip().upper():
         logger.info("Resolved symbol %r to Yahoo symbol %r", raw, canonical)
     return canonical
+
+
+# Spellings that switch the default exchange suffix off.
+_NO_SUFFIX = {"", "none", "off", "false", "0"}
+
+
+def apply_default_exchange(raw: str, suffix: str | None) -> str:
+    """The canonical symbol, with ``suffix`` added when a bare ticker names no listing.
+
+    For a fork aimed at one market: with ``suffix=".MI"``, ``ENI`` resolves to
+    ``ENI.MI`` (Eni on Borsa Italiana) rather than to whatever trades as ``ENI``
+    in the US. A symbol that already names its listing or is not a plain equity
+    ticker is left as :func:`normalize_symbol` resolves it: ``ENI.MI``,
+    ``SAP.DE``, ``0700.HK``, ``^GSPC``, ``GC=F``, ``EURUSD``, ``BTC-USD``,
+    ``FTSEMIB``. ``AAPL.US`` asks for the US listing and resolves to ``AAPL``.
+    A suffix of ``None``, ``""`` or ``"none"`` changes nothing.
+    """
+    if not isinstance(raw, str) or not raw.strip():
+        return raw
+    upper = raw.strip().upper().rstrip("+")
+    if upper.endswith(".US") and len(upper) > 3:
+        return normalize_symbol(upper[:-3])
+    canonical = normalize_symbol(raw)
+    if suffix is None or suffix.strip().lower() in _NO_SUFFIX:
+        return canonical
+    suffix = suffix.strip().upper()
+    if not suffix.startswith("."):
+        suffix = "." + suffix
+    resolved_by_rule = canonical != upper
+    if resolved_by_rule or any(c in canonical for c in ".^=-"):
+        return canonical
+    if not canonical.isalnum():
+        return canonical
+    listed = canonical + suffix
+    logger.info("Resolved bare ticker %r to %r (default exchange %s)", raw, listed, suffix)
+    return listed
 
 
 # Tickers can contain letters, digits, dot, dash, underscore, caret

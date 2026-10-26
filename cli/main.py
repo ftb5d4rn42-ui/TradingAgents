@@ -53,10 +53,10 @@ def analyze(
         help="JSON file with current holdings and cash, so the trader, risk and "
         "portfolio agents size against your actual position.",
     ),
-    ticker: str = typer.Option(None, "--ticker", help="Ticker to analyze, e.g. NVDA or 0700.HK; skips the prompt"),
+    ticker: str = typer.Option(None, "--ticker", help="Ticker to analyze, e.g. ENI (-> ENI.MI), AAPL.US or 0700.HK; skips the prompt"),
     date: str = typer.Option(None, "--date", help="Analysis date, YYYY-MM-DD; skips the prompt"),
     analysts: str = typer.Option(
-        None, "--analysts", help="Comma-separated analysts, e.g. market,news; skips the prompt"
+        None, "--analysts", help="Comma-separated analysts, e.g. market,news,euro_macro; skips the prompt"
     ),
     save: bool | None = typer.Option(
         None, "--save/--no-save", help="Save the report under results_dir without asking"
